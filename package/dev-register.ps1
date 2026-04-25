@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 
 $here   = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $repo   = Split-Path -Parent $here
-$proj   = Join-Path $repo 'LenovoRipple.csproj'
+$proj   = Join-Path $repo 'KeyWave.csproj'
 $staged = Join-Path $here 'staged'
 
 if (Test-Path $staged) { Remove-Item $staged -Recurse -Force }
@@ -48,9 +48,9 @@ try {
 
 Write-Host ""
 Write-Host "Done. The exe now has package identity."
-Write-Host "  - Launch from Start menu: 'Lenovo Ripple'"
+Write-Host "  - Launch from Start menu: 'KeyWave'"
 Write-Host "  - Then: Settings -> Personalization -> Dynamic Lighting,"
-Write-Host "         under 'Controlled by' pick 'Lenovo Ripple'."
+Write-Host "         under 'Controlled by' pick 'KeyWave'."
 Write-Host ""
 Write-Host "Re-running this script after a code change will re-publish and re-register."
-Write-Host "To unregister: Get-AppxPackage LenovoRipple | Remove-AppxPackage"
+Write-Host "To unregister: Get-AppxPackage KeyWave | Remove-AppxPackage"

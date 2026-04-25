@@ -1,4 +1,4 @@
-<UserControl x:Class="LenovoRipple.Lighting.Simulator.SimulatorPanel"
+<UserControl x:Class="KeyWave.Lighting.Simulator.SimulatorPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Border Background="#0A0A10" CornerRadius="6" Padding="10"

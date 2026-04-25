@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Windows.System;
 
-namespace LenovoRipple.Lighting.Simulator;
+namespace KeyWave.Lighting.Simulator;
 
 /// <summary>
 /// Static fallback mapping from VirtualKey to one of 24 zones, arranged 6 rows by 4 columns.

@@ -1,7 +1,7 @@
 using System;
 using WinColor = Windows.UI.Color;
 
-namespace LenovoRipple;
+namespace KeyWave;
 
 /// <summary>
 /// A color theme decides what each zone shows at rest (base) and what color it

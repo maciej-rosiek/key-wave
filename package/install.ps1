@@ -1,19 +1,19 @@
-# One-shot installer for Lenovo Ripple. Downloads the latest signed MSIX
+# One-shot installer for KeyWave. Downloads the latest signed MSIX
 # from GitHub Releases, trusts the signing cert, and installs it.
 # After install, the app has package identity + the
 # com.microsoft.windows.lighting AppExtension, so Windows lets it drive
 # the keyboard from the background.
 #
 # Usage (paste in PowerShell):
-#   irm https://raw.githubusercontent.com/maciej-rosiek/lenovo-ripple/main/package/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/maciej-rosiek/key-wave/main/package/install.ps1 | iex
 #
 # Cert trust + MSIX install both require admin. The script self-elevates.
 
 $ErrorActionPreference = 'Stop'
 
-$repo  = 'maciej-rosiek/lenovo-ripple'
-$msixName = 'LenovoRipple.msix'
-$cerName  = 'LenovoRippleDev.cer'
+$repo  = 'maciej-rosiek/key-wave'
+$msixName = 'KeyWave.msix'
+$cerName  = 'KeyWaveDev.cer'
 
 function Test-Admin {
     $id = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -22,7 +22,7 @@ function Test-Admin {
 }
 
 if (-not (Test-Admin)) {
-    Write-Host "Lenovo Ripple installer needs admin (to trust the signing cert)." -ForegroundColor Yellow
+    Write-Host "KeyWave installer needs admin (to trust the signing cert)." -ForegroundColor Yellow
     Write-Host "Re-launching elevated..."
     $cmd = "iex (irm 'https://raw.githubusercontent.com/$repo/main/package/install.ps1')"
     Start-Process powershell -Verb RunAs -ArgumentList "-NoProfile -ExecutionPolicy Bypass -NoExit -Command $cmd"
@@ -44,7 +44,7 @@ if (-not ($runtimes -match 'Microsoft\.WindowsDesktop\.App 10\.')) {
 Write-Host "Fetching latest release..."
 $release = Invoke-RestMethod -UseBasicParsing `
     -Uri "https://api.github.com/repos/$repo/releases/latest" `
-    -Headers @{ 'User-Agent' = 'LenovoRipple-Installer' }
+    -Headers @{ 'User-Agent' = 'KeyWave-Installer' }
 
 $msixAsset = $release.assets | Where-Object name -eq $msixName | Select-Object -First 1
 $cerAsset  = $release.assets | Where-Object name -eq $cerName  | Select-Object -First 1
@@ -54,7 +54,7 @@ if (-not $msixAsset -or -not $cerAsset) {
 Write-Host "  $($release.tag_name)  $msixName ($([math]::Round($msixAsset.size/1MB,1)) MB)"
 
 # Download to temp.
-$tmp = Join-Path $env:TEMP "lenovo-ripple-install-$(Get-Random)"
+$tmp = Join-Path $env:TEMP "key-wave-install-$(Get-Random)"
 New-Item -ItemType Directory $tmp -Force | Out-Null
 $msix = Join-Path $tmp $msixName
 $cer  = Join-Path $tmp $cerName
@@ -72,11 +72,11 @@ Add-AppxPackage -Path $msix -ForceUpdateFromAnyVersion
 Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "Lenovo Ripple installed." -ForegroundColor Green
+Write-Host "KeyWave installed." -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Cyan
 Write-Host "  1. Settings -> Personalization -> Dynamic Lighting"
-Write-Host "  2. Under 'Controlled by', pick 'Lenovo Ripple'"
-Write-Host "  3. Launch 'Lenovo Ripple' from the Start menu"
+Write-Host "  2. Under 'Controlled by', pick 'KeyWave'"
+Write-Host "  3. Launch 'KeyWave' from the Start menu"
 Write-Host ""
-Write-Host "To uninstall:  Get-AppxPackage LenovoRipple | Remove-AppxPackage"
+Write-Host "To uninstall:  Get-AppxPackage KeyWave | Remove-AppxPackage"

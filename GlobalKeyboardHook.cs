@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace LenovoRipple.Input;
+namespace KeyWave.Input;
 
 /// <summary>
 /// Low-level Win32 keyboard hook (WH_KEYBOARD_LL). Fires <see cref="KeyPressed"/> on the

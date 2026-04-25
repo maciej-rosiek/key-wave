@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.Win32;
 
-namespace LenovoRipple;
+namespace KeyWave;
 
 /// <summary>
 /// Manages a per-user "run at login" entry under
@@ -12,7 +12,7 @@ namespace LenovoRipple;
 internal static class AutoStart
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string ValueName = "LenovoRipple";
+    private const string ValueName = "KeyWave";
     private const string HiddenFlag = "--hidden";
 
     public static bool IsEnabled()

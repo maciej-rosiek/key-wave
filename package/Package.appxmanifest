@@ -7,14 +7,14 @@
   IgnorableNamespaces="uap uap3 rescap">
 
   <Identity
-    Name="LenovoRipple"
-    Publisher="CN=LenovoRippleDev"
+    Name="KeyWave"
+    Publisher="CN=KeyWaveDev"
     Version="0.1.1.0"
     ProcessorArchitecture="x64" />
 
   <Properties>
-    <DisplayName>Lenovo Ripple</DisplayName>
-    <PublisherDisplayName>Lenovo Ripple Dev</PublisherDisplayName>
+    <DisplayName>KeyWave</DisplayName>
+    <PublisherDisplayName>KeyWave Dev</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -27,9 +27,9 @@
   </Resources>
 
   <Applications>
-    <Application Id="App" Executable="LenovoRipple.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="App" Executable="KeyWave.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="Lenovo Ripple"
+        DisplayName="KeyWave"
         Description="Reactive keyboard lighting for LampArray devices"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
@@ -45,8 +45,8 @@
         <uap3:Extension Category="windows.appExtension">
           <uap3:AppExtension
             Name="com.microsoft.windows.lighting"
-            Id="LenovoRippleLighting"
-            DisplayName="Lenovo Ripple"
+            Id="KeyWaveLighting"
+            DisplayName="KeyWave"
             Description="Reactive keyboard lighting"
             PublicFolder="Public" />
         </uap3:Extension>

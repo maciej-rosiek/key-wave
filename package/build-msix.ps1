@@ -6,14 +6,14 @@
 #   powershell -ExecutionPolicy Bypass -File package\build-msix.ps1
 #
 # Output:
-#   package\output\LenovoRipple.msix
-#   package\output\LenovoRippleDev.cer  (one-time trust on install machine)
+#   package\output\KeyWave.msix
+#   package\output\KeyWaveDev.cer  (one-time trust on install machine)
 
 $ErrorActionPreference = 'Stop'
 
 $here    = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $repo    = Split-Path -Parent $here
-$proj    = Join-Path $repo 'LenovoRipple.csproj'
+$proj    = Join-Path $repo 'KeyWave.csproj'
 $staged  = Join-Path $here 'staged'
 $out     = Join-Path $here 'output'
 $toolDir = Join-Path $here '.sdk-tools'
@@ -83,7 +83,7 @@ Write-Host "MakeAppx: $makeAppx"
 Write-Host "SignTool: $signTool"
 
 # --- Pack ------------------------------------------------------------------------
-$msix = Join-Path $out 'LenovoRipple.msix'
+$msix = Join-Path $out 'KeyWave.msix'
 if (Test-Path $msix) { Remove-Item $msix -Force }
 
 Write-Host "Packing $msix ..."
@@ -92,21 +92,21 @@ if ($LASTEXITCODE -ne 0) { throw "MakeAppx failed" }
 
 # --- Cert + sign ------------------------------------------------------------------
 $cert = Get-ChildItem Cert:\CurrentUser\My |
-    Where-Object { $_.Subject -eq 'CN=LenovoRippleDev' } |
+    Where-Object { $_.Subject -eq 'CN=KeyWaveDev' } |
     Select-Object -First 1
 
 if (-not $cert) {
-    Write-Host "Creating self-signed code-signing cert (CN=LenovoRippleDev)..."
+    Write-Host "Creating self-signed code-signing cert (CN=KeyWaveDev)..."
     $cert = New-SelfSignedCertificate `
         -Type CodeSigningCert `
-        -Subject 'CN=LenovoRippleDev' `
+        -Subject 'CN=KeyWaveDev' `
         -KeyUsage DigitalSignature `
-        -FriendlyName 'Lenovo Ripple Dev' `
+        -FriendlyName 'KeyWave Dev' `
         -CertStoreLocation Cert:\CurrentUser\My `
         -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3','2.5.29.19={text}')
 }
 
-$cer = Join-Path $out 'LenovoRippleDev.cer'
+$cer = Join-Path $out 'KeyWaveDev.cer'
 Export-Certificate -Cert $cert -FilePath $cer | Out-Null
 
 Write-Host "Signing..."

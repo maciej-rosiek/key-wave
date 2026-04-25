@@ -1,4 +1,4 @@
-# Generates the Lenovo Ripple app icon at the sizes Windows + MSIX expect.
+# Generates the KeyWave app icon at the sizes Windows + MSIX expect.
 # Design: dark navy tile, a cyan glowing keyboard "key" centered, with two
 # concentric ripple rings expanding from it.
 #

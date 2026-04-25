@@ -1,19 +1,30 @@
+using System;
 using System.ComponentModel;
 using System.Windows;
-using LenovoRipple.Lighting;
-using LenovoRipple.Lighting.Simulator;
+using KeyWave.Lighting;
+using KeyWave.Lighting.Simulator;
 
-namespace LenovoRipple;
+namespace KeyWave;
 
 public partial class MainWindow : Window
 {
     private readonly LampArrayController _controller;
     private bool _allowClose;
+    private bool _suppressParameterEvents;
+
+    /// <summary>Set by App; called when the user moves a slider or toggles wall bounce.</summary>
+    public Action<EffectParameters>? EffectParametersChanged { get; set; }
 
     public MainWindow(LampArrayController controller)
     {
         InitializeComponent();
         _controller = controller;
+
+        DistanceSlider.ValueChanged   += (_, _) => RaiseParametersChanged();
+        WidthSlider.ValueChanged      += (_, _) => RaiseParametersChanged();
+        SpeedSlider.ValueChanged      += (_, _) => RaiseParametersChanged();
+        WallBounceCheck.Checked       += (_, _) => RaiseParametersChanged();
+        WallBounceCheck.Unchecked     += (_, _) => RaiseParametersChanged();
     }
 
     /// <summary>The simulator surface embedded in this window. Always present.</summary>
@@ -48,6 +59,51 @@ public partial class MainWindow : Window
     public void ShowTheme(string name)
     {
         Dispatcher.BeginInvoke(new System.Action(() => ThemeText.Text = name));
+    }
+
+    public void ShowEffect(string name)
+    {
+        Dispatcher.BeginInvoke(new System.Action(() => EffectText.Text = name));
+    }
+
+    /// <summary>Push current parameter values into the sliders without triggering the changed event.</summary>
+    public void LoadParameters(EffectParameters p)
+    {
+        Dispatcher.BeginInvoke(new System.Action(() =>
+        {
+            _suppressParameterEvents = true;
+            try
+            {
+                DistanceSlider.Value    = p.Distance;
+                WidthSlider.Value       = p.Width;
+                SpeedSlider.Value       = p.SpeedMs;
+                WallBounceCheck.IsChecked = p.WallBounce;
+                UpdateValueLabels();
+            }
+            finally
+            {
+                _suppressParameterEvents = false;
+            }
+        }));
+    }
+
+    private void RaiseParametersChanged()
+    {
+        UpdateValueLabels();
+        if (_suppressParameterEvents) return;
+        var p = new EffectParameters(
+            Distance:   (int)DistanceSlider.Value,
+            Width:      (int)WidthSlider.Value,
+            SpeedMs:    (int)SpeedSlider.Value,
+            WallBounce: WallBounceCheck.IsChecked == true);
+        EffectParametersChanged?.Invoke(p);
+    }
+
+    private void UpdateValueLabels()
+    {
+        DistanceValue.Text = ((int)DistanceSlider.Value).ToString();
+        WidthValue.Text    = ((int)WidthSlider.Value).ToString();
+        SpeedValue.Text    = $"{(int)SpeedSlider.Value}ms";
     }
 
     protected override void OnClosing(CancelEventArgs e)

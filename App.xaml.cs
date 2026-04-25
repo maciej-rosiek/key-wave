@@ -3,12 +3,12 @@ using System.Drawing;
 using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
-using LenovoRipple.Input;
-using LenovoRipple.Lighting;
+using KeyWave.Input;
+using KeyWave.Lighting;
 using WinColor = Windows.UI.Color;
 using WinFormsApp = System.Windows.Forms.Application;
 
-namespace LenovoRipple;
+namespace KeyWave;
 
 public partial class App : System.Windows.Application
 {
@@ -17,7 +17,9 @@ public partial class App : System.Windows.Application
     private NotifyIcon? _tray;
     private ToolStripMenuItem? _autostartItem;
     private readonly System.Collections.Generic.List<ToolStripMenuItem> _themeItems = new();
+    private readonly System.Collections.Generic.List<ToolStripMenuItem> _effectItems = new();
     private ColorTheme _activeTheme = ColorThemes.Default;
+    private Effect _activeEffect = Effects.Default;
     private MainWindow? _window;
 
     private void OnStartup(object sender, StartupEventArgs e)
@@ -25,20 +27,26 @@ public partial class App : System.Windows.Application
         bool startHidden = e.Args.Any(a => a.Equals("--hidden", StringComparison.OrdinalIgnoreCase));
 
         _activeTheme = ColorThemes.Default;
+        _activeEffect = Effects.Default;
         _controller = new LampArrayController
         {
             Theme = _activeTheme,
+            Effect = _activeEffect,
+            EffectParameters = EffectParameters.Default,
             FadeMs = 200,
         };
 
         _window = new MainWindow(_controller);
         _controller.DeviceChanged += _window.OnDeviceChanged;
+        _window.EffectParametersChanged = OnParametersChanged;
 
         // Always register the on-screen simulator. Real LampArrays attach on top
         // of it as the device watcher discovers them.
         _controller.AddSurface(_window.SimulatorSurface);
         _controller.Start();
         _window.ShowTheme(_activeTheme.Name);
+        _window.ShowEffect(_activeEffect.Name);
+        _window.LoadParameters(_controller.EffectParameters);
 
         if (!startHidden) _window.Show();
 
@@ -80,6 +88,17 @@ public partial class App : System.Windows.Application
         }
         menu.Items.Add(themeItem);
 
+        var effectItem = new ToolStripMenuItem("Effect");
+        foreach (var effect in Effects.All)
+        {
+            var item = new ToolStripMenuItem(effect.Name) { Tag = effect };
+            item.Checked = ReferenceEquals(effect, _activeEffect);
+            item.Click += (_, _) => ApplyEffect((Effect)item.Tag!);
+            _effectItems.Add(item);
+            effectItem.DropDownItems.Add(item);
+        }
+        menu.Items.Add(effectItem);
+
         menu.Items.Add(new ToolStripSeparator());
 
         _autostartItem = new ToolStripMenuItem("Start with Windows")
@@ -105,7 +124,7 @@ public partial class App : System.Windows.Application
         {
             Icon = LoadAppIcon(),
             Visible = true,
-            Text = "Lenovo Ripple",
+            Text = "KeyWave",
             ContextMenuStrip = menu,
         };
         _tray.DoubleClick += (_, _) => ShowMainWindow();
@@ -138,6 +157,21 @@ public partial class App : System.Windows.Application
         foreach (var item in _themeItems)
             item.Checked = ReferenceEquals(item.Tag, theme);
         _window?.ShowTheme(theme.Name);
+    }
+
+    private void ApplyEffect(Effect effect)
+    {
+        if (_controller == null) return;
+        _activeEffect = effect;
+        _controller.Effect = effect;
+        foreach (var item in _effectItems)
+            item.Checked = ReferenceEquals(item.Tag, effect);
+        _window?.ShowEffect(effect.Name);
+    }
+
+    private void OnParametersChanged(EffectParameters p)
+    {
+        if (_controller != null) _controller.EffectParameters = p;
     }
 
     private void ShowMainWindow()

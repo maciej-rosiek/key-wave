@@ -9,7 +9,7 @@ using Windows.Devices.Lights;
 using Windows.System;
 using WinColor = Windows.UI.Color;
 
-namespace LenovoRipple.Lighting;
+namespace KeyWave.Lighting;
 
 /// <summary>
 /// Manages a set of <see cref="ILampSurface"/>s and orchestrates flash+fade reactions.
@@ -30,6 +30,8 @@ public sealed class LampArrayController : IDisposable
     private bool _disposed;
 
     public ColorTheme Theme { get; set; } = ColorThemes.Default;
+    public Effect Effect { get; set; } = Effects.Default;
+    public EffectParameters EffectParameters { get; set; } = EffectParameters.Default;
     public int FadeMs { get; set; } = 200;
     public int FadeSteps { get; set; } = 10;
 
@@ -131,6 +133,7 @@ public sealed class LampArrayController : IDisposable
     public Task FlashKeyAsync(VirtualKey key)
     {
         var surfaces = Snapshot();
+        var effect = Effect;
         var tasks = new List<Task>(surfaces.Count);
         foreach (var s in surfaces)
         {
@@ -138,70 +141,48 @@ public sealed class LampArrayController : IDisposable
             try { indices = s.GetIndicesForKey(key); }
             catch { continue; }
             if (indices == null || indices.Length == 0) continue;
-            tasks.Add(FlashSurfaceAsync(s, indices));
+            tasks.Add(effect.RunAsync(this, s, indices, key));
         }
         return tasks.Count == 0 ? Task.CompletedTask : Task.WhenAll(tasks);
     }
 
-    private async Task FlashSurfaceAsync(ILampSurface surface, int[] indices)
+    /// <summary>
+    /// Effects call this to take ownership of a set of zones. Any prior owner
+    /// of those zones gets its CTS cancelled, which makes its in-flight loop
+    /// stop touching the zones it lost. Returns one CTS per index.
+    /// </summary>
+    internal CancellationTokenSource[] ClaimZones(ILampSurface surface, int[] indices)
     {
-        // Claim ownership of each zone, cancelling any prior owner.
-        var myCts = new CancellationTokenSource[indices.Length];
+        var mine = new CancellationTokenSource[indices.Length];
         for (int i = 0; i < indices.Length; i++)
         {
             var cts = new CancellationTokenSource();
             var key = (surface, indices[i]);
-            if (_zoneOwners.TryGetValue(key, out var prev))
-            {
-                prev.Cancel();
-            }
+            if (_zoneOwners.TryGetValue(key, out var prev)) prev.Cancel();
             _zoneOwners[key] = cts;
-            myCts[i] = cts;
+            mine[i] = cts;
         }
+        return mine;
+    }
 
-        try
+    /// <summary>Release zones the effect still owns. Safe to call in a finally.</summary>
+    internal void ReleaseZones(ILampSurface surface, int[] indices, CancellationTokenSource[] mine)
+    {
+        for (int i = 0; i < indices.Length; i++)
         {
-            // Resolve per-zone start (flash) and end (base) colors once. Even for
-            // uniform themes this is just two arrays of the same color repeated;
-            // the small overhead lets one code path cover both uniform and rainbow.
-            int total = surface.LampCount;
-            var flashColors = new WinColor[indices.Length];
-            var baseColors  = new WinColor[indices.Length];
-            for (int i = 0; i < indices.Length; i++)
-            {
-                flashColors[i] = Theme.FlashColorFor(indices[i], total);
-                baseColors[i]  = Theme.BaseColorFor(indices[i], total);
-            }
-
-            // Initial flash.
-            WriteActive(surface, indices, myCts, flashColors);
-
-            int steps = Math.Max(1, FadeSteps);
-            int stepDelay = Math.Max(1, FadeMs / steps);
-            var stepColors = new WinColor[indices.Length];
-            for (int s = 1; s <= steps; s++)
-            {
-                await Task.Delay(stepDelay).ConfigureAwait(true);
-                float t = (float)s / steps;
-                for (int i = 0; i < indices.Length; i++)
-                    stepColors[i] = Lerp(flashColors[i], baseColors[i], t);
-                if (!WriteActive(surface, indices, myCts, stepColors)) return;
-            }
-        }
-        finally
-        {
-            // Release zones we still own.
-            for (int i = 0; i < indices.Length; i++)
-            {
-                var pair = new KeyValuePair<(ILampSurface, int), CancellationTokenSource>(
-                    (surface, indices[i]), myCts[i]);
-                _zoneOwners.TryRemove(pair);
-                myCts[i].Dispose();
-            }
+            var pair = new KeyValuePair<(ILampSurface, int), CancellationTokenSource>(
+                (surface, indices[i]), mine[i]);
+            _zoneOwners.TryRemove(pair);
+            mine[i].Dispose();
         }
     }
 
-    private static bool WriteActive(ILampSurface surface, int[] indices, CancellationTokenSource[] owners, WinColor[] colors)
+    /// <summary>
+    /// Push <paramref name="colors"/> to the surface, but only for indices whose
+    /// CTS hasn't been cancelled (i.e. ones we still own). Returns false if we
+    /// own no zones — caller should bail out of its animation loop.
+    /// </summary>
+    internal static bool WriteActive(ILampSurface surface, int[] indices, CancellationTokenSource[] owners, WinColor[] colors)
     {
         var activeIdx = new List<int>(indices.Length);
         var activeColors = new List<WinColor>(indices.Length);
@@ -219,7 +200,7 @@ public sealed class LampArrayController : IDisposable
         return true;
     }
 
-    private static WinColor Lerp(WinColor a, WinColor b, float t)
+    internal static WinColor Lerp(WinColor a, WinColor b, float t)
     {
         byte L(byte x, byte y) => (byte)(x + (y - x) * t);
         return WinColor.FromArgb(255, L(a.R, b.R), L(a.G, b.G), L(a.B, b.B));

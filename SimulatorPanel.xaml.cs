@@ -7,7 +7,7 @@ using Windows.System;
 using MediaColor = System.Windows.Media.Color;
 using WinColor = Windows.UI.Color;
 
-namespace LenovoRipple.Lighting.Simulator;
+namespace KeyWave.Lighting.Simulator;
 
 public partial class SimulatorPanel : System.Windows.Controls.UserControl, ILampSurface
 {
@@ -48,6 +48,8 @@ public partial class SimulatorPanel : System.Windows.Controls.UserControl, ILamp
 
     public string DisplayName => "Simulator (24-zone)";
     public int LampCount => _zones.Length;
+    public int Rows => KeyZoneMap.Rows;
+    public int Cols => KeyZoneMap.Cols;
 
     public int[] GetIndicesForKey(VirtualKey key) => KeyZoneMap.GetIndicesForKey(key);
 
