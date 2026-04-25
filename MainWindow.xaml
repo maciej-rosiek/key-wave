@@ -1,0 +1,57 @@
+<Window x:Class="LenovoRipple.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sim="clr-namespace:LenovoRipple.Lighting.Simulator"
+        Title="Lenovo Ripple"
+        Icon="pack://application:,,,/Assets/AppIcon.png"
+        Width="640" Height="420"
+        Background="#101014" Foreground="#E0E0E0"
+        FontFamily="Segoe UI" FontSize="13"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel Margin="16">
+        <TextBlock DockPanel.Dock="Top" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,4"
+                   Text="Lenovo Ripple"/>
+        <TextBlock DockPanel.Dock="Top" Opacity="0.7" Margin="0,0,0,12"
+                   Text="Reactive keyboard lighting for LampArray devices."/>
+
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Real devices:" Margin="0,0,8,4" Opacity="0.7"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="DeviceCountText" Text="0"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="Lamps:" Margin="0,0,8,4" Opacity="0.7"/>
+            <TextBlock Grid.Row="0" Grid.Column="3" x:Name="LampCountText" Text="—"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Last key:" Margin="0,0,8,4" Opacity="0.7"/>
+            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="LastKeyText" Text="—"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="2" Text="Mode:" Margin="0,0,8,4" Opacity="0.7"/>
+            <TextBlock Grid.Row="1" Grid.Column="3" x:Name="ModeText" Text="simulator"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme:" Margin="0,0,8,4" Opacity="0.7"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" x:Name="ThemeText" Text="—"/>
+        </Grid>
+
+        <Border DockPanel.Dock="Bottom" Padding="10" CornerRadius="4" Background="#1A1A22"
+                BorderBrush="#2A2A35" BorderThickness="1" Margin="0,12,0,0">
+            <TextBlock TextWrapping="Wrap" Opacity="0.75" FontSize="11">
+                The on-screen 24-zone grid mirrors what would be sent to a real LampArray.
+                On the LOQ, keep this window focused — the LampArray API only applies colors when the app is in foreground.
+                Close to minimize to tray; right-click the tray icon to exit.
+            </TextBlock>
+        </Border>
+
+        <sim:SimulatorPanel x:Name="Simulator"/>
+    </DockPanel>
+</Window>

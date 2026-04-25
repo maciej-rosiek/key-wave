@@ -1,0 +1,39 @@
+<Window x:Class="LenovoRipple.Probe.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Lenovo Ripple — LampArray Probe"
+        Width="780" Height="520"
+        Background="#0E0E14" Foreground="#E0E0E0"
+        FontFamily="Segoe UI" FontSize="13"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel Margin="14">
+        <TextBlock DockPanel.Dock="Top" FontSize="18" FontWeight="SemiBold"
+                   Text="LampArray discovery probe"/>
+        <TextBlock DockPanel.Dock="Top" Opacity="0.7" Margin="0,2,0,10"
+                   Text="Watching Windows.Devices.Lights.LampArray. Reports each device and its properties."/>
+
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Status: " Opacity="0.7"/>
+            <TextBlock Grid.Column="1" x:Name="StatusText" Text="initializing..."/>
+        </Grid>
+
+        <Border DockPanel.Dock="Top" Padding="0" CornerRadius="4" BorderBrush="#2A2A35"
+                BorderThickness="1" Background="#06060A">
+            <TextBox x:Name="OutputBox"
+                     IsReadOnly="True"
+                     FontFamily="Cascadia Mono, Consolas, Courier New"
+                     FontSize="12"
+                     Background="Transparent"
+                     Foreground="#D8D8E0"
+                     BorderThickness="0"
+                     Padding="8"
+                     TextWrapping="NoWrap"
+                     VerticalScrollBarVisibility="Auto"
+                     HorizontalScrollBarVisibility="Auto"/>
+        </Border>
+    </DockPanel>
+</Window>

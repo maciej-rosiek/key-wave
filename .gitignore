@@ -1,0 +1,27 @@
+# Build artifacts
+bin/
+obj/
+publish/
+**/bin/
+**/obj/
+**/publish/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+
+# .NET
+*.pdb
+
+# Packaging staging dirs
+package/staged/
+package/output/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local tooling
+.claude/
