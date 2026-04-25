@@ -29,8 +29,7 @@ public sealed class LampArrayController : IDisposable
     private DeviceWatcher? _watcher;
     private bool _disposed;
 
-    public WinColor BaseColor { get; set; } = WinColor.FromArgb(255, 0, 0, 64);
-    public WinColor FlashColor { get; set; } = WinColor.FromArgb(255, 0, 255, 255);
+    public ColorTheme Theme { get; set; } = ColorThemes.Default;
     public int FadeMs { get; set; } = 200;
     public int FadeSteps { get; set; } = 10;
 
@@ -109,7 +108,24 @@ public sealed class LampArrayController : IDisposable
 
     public void ApplyBaseColor(ILampSurface surface)
     {
-        try { surface.SetColor(BaseColor); } catch { /* surface may have detached */ }
+        try
+        {
+            int total = surface.LampCount;
+            if (Theme.IsUniform || total <= 0)
+            {
+                surface.SetColor(Theme.BaseColorFor(0, total));
+                return;
+            }
+            var colors = new WinColor[total];
+            var indices = new int[total];
+            for (int i = 0; i < total; i++)
+            {
+                indices[i] = i;
+                colors[i] = Theme.BaseColorFor(i, total);
+            }
+            surface.SetColorsForIndices(colors, indices);
+        }
+        catch { /* surface may have detached */ }
     }
 
     public Task FlashKeyAsync(VirtualKey key)
@@ -145,17 +161,31 @@ public sealed class LampArrayController : IDisposable
 
         try
         {
+            // Resolve per-zone start (flash) and end (base) colors once. Even for
+            // uniform themes this is just two arrays of the same color repeated;
+            // the small overhead lets one code path cover both uniform and rainbow.
+            int total = surface.LampCount;
+            var flashColors = new WinColor[indices.Length];
+            var baseColors  = new WinColor[indices.Length];
+            for (int i = 0; i < indices.Length; i++)
+            {
+                flashColors[i] = Theme.FlashColorFor(indices[i], total);
+                baseColors[i]  = Theme.BaseColorFor(indices[i], total);
+            }
+
             // Initial flash.
-            WriteActive(surface, indices, myCts, FlashColor);
+            WriteActive(surface, indices, myCts, flashColors);
 
             int steps = Math.Max(1, FadeSteps);
             int stepDelay = Math.Max(1, FadeMs / steps);
+            var stepColors = new WinColor[indices.Length];
             for (int s = 1; s <= steps; s++)
             {
                 await Task.Delay(stepDelay).ConfigureAwait(true);
                 float t = (float)s / steps;
-                var color = Lerp(FlashColor, BaseColor, t);
-                if (!WriteActive(surface, indices, myCts, color)) return;
+                for (int i = 0; i < indices.Length; i++)
+                    stepColors[i] = Lerp(flashColors[i], baseColors[i], t);
+                if (!WriteActive(surface, indices, myCts, stepColors)) return;
             }
         }
         finally
@@ -171,7 +201,7 @@ public sealed class LampArrayController : IDisposable
         }
     }
 
-    private static bool WriteActive(ILampSurface surface, int[] indices, CancellationTokenSource[] owners, WinColor color)
+    private static bool WriteActive(ILampSurface surface, int[] indices, CancellationTokenSource[] owners, WinColor[] colors)
     {
         var activeIdx = new List<int>(indices.Length);
         var activeColors = new List<WinColor>(indices.Length);
@@ -180,7 +210,7 @@ public sealed class LampArrayController : IDisposable
             if (!owners[i].IsCancellationRequested)
             {
                 activeIdx.Add(indices[i]);
-                activeColors.Add(color);
+                activeColors.Add(colors[i]);
             }
         }
         if (activeIdx.Count == 0) return false;

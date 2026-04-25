@@ -27,8 +27,7 @@ public partial class App : System.Windows.Application
         _activeTheme = ColorThemes.Default;
         _controller = new LampArrayController
         {
-            BaseColor = _activeTheme.BaseColor,
-            FlashColor = _activeTheme.FlashColor,
+            Theme = _activeTheme,
             FadeMs = 200,
         };
 
@@ -134,8 +133,7 @@ public partial class App : System.Windows.Application
     {
         if (_controller == null) return;
         _activeTheme = theme;
-        _controller.BaseColor = theme.BaseColor;
-        _controller.FlashColor = theme.FlashColor;
+        _controller.Theme = theme;
         _controller.ApplyBaseColorAll();
         foreach (var item in _themeItems)
             item.Checked = ReferenceEquals(item.Tag, theme);
