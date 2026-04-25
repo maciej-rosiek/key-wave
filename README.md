@@ -27,16 +27,34 @@ In this mode, the keyboard only reacts while the Lenovo Ripple window is in fore
 
 The Windows LampArray API is gated: an unpackaged exe can only drive the keyboard when *its own* window is in front. To control lighting from the background you need to install the app as a packaged Windows app (MSIX) with the `com.microsoft.windows.lighting` AppExtension declared in its manifest.
 
-The repo ships two scripts in `package/`:
+#### One-liner install (easiest)
 
-- `dev-register.ps1` — publishes the app and registers the manifest in place. Fast for development; no signing needed. Requires .NET 10 SDK.
+In an elevated-or-normal PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/maciej-rosiek/lenovo-ripple/main/package/install.ps1 | iex
+```
+
+This downloads the source to `%LOCALAPPDATA%\LenovoRipple\source`, publishes a Release build, and registers the package. Requires the .NET 10 SDK.
+
+#### Or run the scripts manually
+
+The repo ships two in `package/`:
+
+- `dev-register.ps1` — publishes the app and registers the manifest in place. Fast for development; no signing needed.
 - `build-msix.ps1` — produces a real signed `.msix` you can install on another machine. Uses the Windows SDK (MakeAppx, SignTool) and a self-signed cert.
 
-After registering or installing:
+#### After registering or installing
 
 1. Open **Settings → Personalization → Dynamic Lighting**.
-2. Under **Controlled by**, pick **Lenovo Ripple**.
-3. Lights now react regardless of which window is focused.
+2. Under **Controlled by**, pick **Lenovo Ripple** (this dropdown only shows apps that declared the lighting AppExtension).
+3. Launch the app from the Start menu. Lights now react regardless of which window is focused.
+
+To uninstall:
+
+```powershell
+Get-AppxPackage LenovoRipple | Remove-AppxPackage
+```
 
 ## Themes
 
