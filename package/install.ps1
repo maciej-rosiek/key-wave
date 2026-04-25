@@ -72,6 +72,20 @@ if ($git) {
 # Run dev-register from the freshly checked-out tree.
 $register = Join-Path $src 'package\dev-register.ps1'
 & powershell -NoProfile -ExecutionPolicy Bypass -File $register
+$registerExit = $LASTEXITCODE
+
+if ($registerExit -ne 0) {
+    Write-Host ""
+    Write-Host "Registration FAILED (exit code $registerExit)." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Most common cause: Developer Mode is OFF." -ForegroundColor Yellow
+    Write-Host "  Add-AppxPackage -Register requires it for unsigned packages."
+    Write-Host ""
+    Write-Host "Fix:" -ForegroundColor Cyan
+    Write-Host "  Settings -> Privacy & security -> For developers -> Developer Mode = On"
+    Write-Host "  Then re-run this installer."
+    return
+}
 
 Write-Host ""
 Write-Host "Lenovo Ripple installed." -ForegroundColor Green

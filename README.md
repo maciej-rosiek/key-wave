@@ -88,7 +88,6 @@ powershell -ExecutionPolicy Bypass -File package\generate-icons.ps1
 | `GlobalKeyboardHook.cs` | Win32 `WH_KEYBOARD_LL` hook so keypresses are seen even when the app isn't focused. |
 | `AutoStart.cs` | HKCU\…\Run toggle (writes `"<exe>" --hidden`). |
 | `package/` | MSIX manifest, asset PNGs, dev-register and build scripts. |
-| `probe/` | Tiny standalone WPF probe that lists discovered LampArrays and their properties — handy for verifying the API on a new machine. |
 
 ## Notes
 

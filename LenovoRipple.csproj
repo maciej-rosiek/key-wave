@@ -13,8 +13,8 @@
     <ApplicationIcon></ApplicationIcon>
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
-    <!-- Keep the probe app and the packaging folder out of the main exe build. -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);probe\**;package\**</DefaultItemExcludes>
+    <!-- Keep packaging folder out of the main exe build. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);package\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

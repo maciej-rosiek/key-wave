@@ -29,7 +29,22 @@ Copy-Item (Join-Path $here 'Public')                (Join-Path $staged 'Public')
 
 Write-Host ""
 Write-Host "Registering package..."
-Add-AppxPackage -Register (Join-Path $staged 'AppxManifest.xml')
+try {
+    Add-AppxPackage -Register (Join-Path $staged 'AppxManifest.xml') -ErrorAction Stop
+} catch {
+    Write-Host ""
+    Write-Host "Add-AppxPackage failed: $_" -ForegroundColor Red
+    if ($_.Exception.Message -match '0x80073CFF') {
+        Write-Host ""
+        Write-Host "This means Developer Mode is OFF." -ForegroundColor Yellow
+        Write-Host "Loose-registering an unsigned manifest needs Developer Mode."
+        Write-Host ""
+        Write-Host "Fix:" -ForegroundColor Cyan
+        Write-Host "  Settings -> Privacy & security -> For developers -> Developer Mode = On"
+        Write-Host "  Then re-run this script."
+    }
+    exit 1
+}
 
 Write-Host ""
 Write-Host "Done. The exe now has package identity."
