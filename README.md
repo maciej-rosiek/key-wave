@@ -27,24 +27,17 @@ In this mode, the keyboard only reacts while the Lenovo Ripple window is in fore
 
 The Windows LampArray API is gated: an unpackaged exe can only drive the keyboard when *its own* window is in front. To control lighting from the background you need to install the app as a packaged Windows app (MSIX) with the `com.microsoft.windows.lighting` AppExtension declared in its manifest.
 
-#### One-liner install (easiest)
+#### One-liner install (recommended)
 
-In an elevated-or-normal PowerShell:
+In PowerShell:
 
 ```powershell
 irm https://raw.githubusercontent.com/maciej-rosiek/lenovo-ripple/main/package/install.ps1 | iex
 ```
 
-This downloads the source to `%LOCALAPPDATA%\LenovoRipple\source`, publishes a Release build, and registers the package. Requires the .NET 10 SDK.
+The script self-elevates to Admin, downloads the latest signed `.msix` + cert from [Releases](../../releases), trusts the cert, and installs the package. Requires the .NET 10 Desktop Runtime ([download](https://dotnet.microsoft.com/download/dotnet/10.0)).
 
-#### Or run the scripts manually
-
-The repo ships two in `package/`:
-
-- `dev-register.ps1` — publishes the app and registers the manifest in place. Fast for development; no signing needed.
-- `build-msix.ps1` — produces a real signed `.msix` you can install on another machine. Uses the Windows SDK (MakeAppx, SignTool) and a self-signed cert.
-
-#### After registering or installing
+#### After install
 
 1. Open **Settings → Personalization → Dynamic Lighting**.
 2. Under **Controlled by**, pick **Lenovo Ripple** (this dropdown only shows apps that declared the lighting AppExtension).
@@ -55,6 +48,13 @@ To uninstall:
 ```powershell
 Get-AppxPackage LenovoRipple | Remove-AppxPackage
 ```
+
+#### Manual install paths
+
+If you prefer not to use the one-liner, the repo's `package/` folder has:
+
+- `dev-register.ps1` — publishes from source and registers the manifest in place. **Requires Developer Mode = On** (Settings → Privacy & security → For developers). No signing needed; useful for iterating on the code.
+- `build-msix.ps1` — produces the signed `.msix` and cert that the one-liner downloads. Auto-fetches `Microsoft.Windows.SDK.BuildTools` NuGet for `MakeAppx.exe` / `SignTool.exe` if the Windows SDK isn't installed.
 
 ## Themes
 
