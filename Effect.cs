@@ -23,7 +23,10 @@ public sealed record EffectParameters(
     int SpeedMs,
     bool WallBounce)
 {
-    public static EffectParameters Default => new(Distance: 3, Width: 1, SpeedMs: 60, WallBounce: false);
+    // Width=2 gives a softer, more visible wave than width=1 (which only lights a
+    // single ring per step). Speed 80ms paces 5 steps over ~400ms — long enough to
+    // see the wave travel outward.
+    public static EffectParameters Default => new(Distance: 3, Width: 2, SpeedMs: 80, WallBounce: false);
 }
 
 public static class Effects

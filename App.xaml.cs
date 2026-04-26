@@ -99,6 +99,16 @@ public partial class App : System.Windows.Application
         }
         menu.Items.Add(effectItem);
 
+        var diagItem = new ToolStripMenuItem("Diagnostics");
+        var mapTestItem = new ToolStripMenuItem("Run zone map test");
+        mapTestItem.Click += (_, _) =>
+        {
+            // Fire-and-forget: the test is async and resumes on UI thread.
+            _ = _controller?.RunZoneMapTestAsync()!;
+        };
+        diagItem.DropDownItems.Add(mapTestItem);
+        menu.Items.Add(diagItem);
+
         menu.Items.Add(new ToolStripSeparator());
 
         _autostartItem = new ToolStripMenuItem("Start with Windows")

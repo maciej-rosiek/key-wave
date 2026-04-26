@@ -130,6 +130,43 @@ public sealed class LampArrayController : IDisposable
         catch { /* surface may have detached */ }
     }
 
+    /// <summary>
+    /// Diagnostic: lights each zone in turn (0, 1, 2, …) for <paramref name="holdMs"/> ms,
+    /// then restores the base color. Use this to figure out which physical zone
+    /// corresponds to which lamp index — watch the keyboard while the simulator
+    /// in the window highlights the same indices.
+    /// </summary>
+    public async Task RunZoneMapTestAsync(int holdMs = 600)
+    {
+        var surfaces = Snapshot();
+        if (surfaces.Count == 0) return;
+
+        var highlight = WinColor.FromArgb(255, 0, 255, 255); // bright cyan
+        int maxLamps = surfaces.Max(s => s.LampCount);
+
+        // Reset everything to base, then walk through the zones.
+        foreach (var s in surfaces) ApplyBaseColor(s);
+
+        for (int z = 0; z < maxLamps; z++)
+        {
+            foreach (var s in surfaces)
+            {
+                if (z >= s.LampCount) continue;
+                // Restore the previous zone (if any) then highlight the current one.
+                if (z > 0)
+                {
+                    var prevBase = Theme.BaseColorFor(z - 1, s.LampCount);
+                    try { s.SetColorsForIndices(new[] { prevBase }, new[] { z - 1 }); } catch { }
+                }
+                try { s.SetColorsForIndices(new[] { highlight }, new[] { z }); } catch { }
+            }
+            await Task.Delay(holdMs).ConfigureAwait(true);
+        }
+
+        // Final restore — all surfaces back to theme base.
+        foreach (var s in surfaces) ApplyBaseColor(s);
+    }
+
     public Task FlashKeyAsync(VirtualKey key)
     {
         var surfaces = Snapshot();
