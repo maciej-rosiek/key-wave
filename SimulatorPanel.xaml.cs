@@ -32,13 +32,15 @@ public partial class SimulatorPanel : System.Windows.Controls.UserControl, ILamp
                 Opacity = 0.55,
                 HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
-                FontSize = 11,
+                FontSize = 10,
             };
+            // Tighter cell margins because the 1×24 strip squeezes 24 cells in
+            // the available width.
             var border = new Border
             {
                 Background = brush,
-                Margin = new Thickness(3),
-                CornerRadius = new CornerRadius(3),
+                Margin = new Thickness(1),
+                CornerRadius = new CornerRadius(2),
                 Child = label,
             };
             _zones[i] = border;

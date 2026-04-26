@@ -1,92 +1,112 @@
+using System;
 using System.Collections.Generic;
 using Windows.System;
 
 namespace KeyWave.Lighting.Simulator;
 
 /// <summary>
-/// Static fallback mapping from VirtualKey to one of 24 zones, arranged 6 rows by 4 columns.
-/// Used by the simulator so we can develop without LampArray hardware.
-/// Layout (row, column) -> zone index = row*4 + column:
+/// Static fallback mapping from VirtualKey to one of 24 zones, arranged as a
+/// single horizontal strip (matches what real LampArray keyboards actually
+/// expose — index 0 is the left edge, index 23 the right edge).
+/// Used by the simulator so we can develop without hardware.
 ///
-///   row 0: [Esc/F1–F4] [F5–F8] [F9–F12] [PrtSc/Ins/Del/Home/End/PgUp/PgDn]
-///   row 1: [`~ 1 2 3 4] [5 6 7]  [8 9 0]  [- = Bksp]
-///   row 2: [Tab Q W E ] [R T Y]  [U I O]  [P [ ] \ ]
-///   row 3: [Caps A S  ] [D F G]  [H J K]  [L ; ' Enter]
-///   row 4: [LShift Z X] [C V B]  [N M ,]  [. / RShift]
-///   row 5: [LCtrl Win LAlt] [Space-L] [Space-R] [RAlt Apps RCtrl Arrows]
+/// Zones approximate the horizontal position of each key column on a standard
+/// QWERTY laptop keyboard. Real hardware uses Windows's GetIndicesForKey,
+/// which is authoritative — this map is only for the on-screen simulator.
 /// </summary>
 internal static class KeyZoneMap
 {
-    public const int Rows = 6;
-    public const int Cols = 4;
+    public const int Rows = 1;
+    public const int Cols = 24;
     public const int ZoneCount = Rows * Cols;
 
     private static readonly Dictionary<VirtualKey, int[]> _map = Build();
 
     public static int[] GetIndicesForKey(VirtualKey key)
-        => _map.TryGetValue(key, out var v) ? v : System.Array.Empty<int>();
+        => _map.TryGetValue(key, out var v) ? v : Array.Empty<int>();
 
     private static Dictionary<VirtualKey, int[]> Build()
     {
         var m = new Dictionary<VirtualKey, int[]>();
 
-        void One(VirtualKey k, int zone) => m[k] = new[] { zone };
-        void Many(int zone, params VirtualKey[] keys) { foreach (var k in keys) m[k] = new[] { zone }; }
+        void Set(int zone, params VirtualKey[] keys)
+        {
+            foreach (var k in keys) m[k] = new[] { zone };
+        }
+        void SetRaw(int zone, params int[] vks)
+        {
+            foreach (var v in vks) m[(VirtualKey)v] = new[] { zone };
+        }
 
-        // Row 0
-        Many(0, VirtualKey.Escape, VirtualKey.F1, VirtualKey.F2, VirtualKey.F3, VirtualKey.F4);
-        Many(1, VirtualKey.F5, VirtualKey.F6, VirtualKey.F7, VirtualKey.F8);
-        Many(2, VirtualKey.F9, VirtualKey.F10, VirtualKey.F11, VirtualKey.F12);
-        Many(3, VirtualKey.Snapshot, VirtualKey.Scroll, VirtualKey.Pause,
-                VirtualKey.Insert, VirtualKey.Delete,
-                VirtualKey.Home, VirtualKey.End,
-                VirtualKey.PageUp, VirtualKey.PageDown);
+        // Each "column" of a typical 14-column QWERTY layout maps to one zone
+        // along the 24-zone horizontal strip. Modifier keys at the row edges
+        // share the leftmost/rightmost zones.
 
-        // Row 1 (numbers row). VK_OEM_3 (`~) = 0xC0, OEM_MINUS=0xBD, OEM_PLUS=0xBB
-        m[(VirtualKey)0xC0] = new[] { 4 }; // ` ~
-        Many(4, VirtualKey.Number1, VirtualKey.Number2, VirtualKey.Number3, VirtualKey.Number4);
-        Many(5, VirtualKey.Number5, VirtualKey.Number6, VirtualKey.Number7);
-        Many(6, VirtualKey.Number8, VirtualKey.Number9, VirtualKey.Number0);
-        m[(VirtualKey)0xBD] = new[] { 7 }; // -
-        m[(VirtualKey)0xBB] = new[] { 7 }; // =
-        One(VirtualKey.Back, 7);
+        // Col 0 — left edge (Esc / ` / Tab / Caps / Shift / Ctrl)
+        Set(0, VirtualKey.Escape, VirtualKey.Tab, VirtualKey.CapitalLock,
+               VirtualKey.Shift, VirtualKey.LeftShift,
+               VirtualKey.Control, VirtualKey.LeftControl);
+        SetRaw(0, 0xC0); // `
 
-        // Row 2
-        Many(8, VirtualKey.Tab, VirtualKey.Q, VirtualKey.W, VirtualKey.E);
-        Many(9, VirtualKey.R, VirtualKey.T, VirtualKey.Y);
-        Many(10, VirtualKey.U, VirtualKey.I, VirtualKey.O);
-        One(VirtualKey.P, 11);
-        m[(VirtualKey)0xDB] = new[] { 11 }; // [
-        m[(VirtualKey)0xDD] = new[] { 11 }; // ]
-        m[(VirtualKey)0xDC] = new[] { 11 }; // \
+        // Col 1 — 1 / Q / A / Z / LWin
+        Set(2, VirtualKey.F1, VirtualKey.Number1, VirtualKey.Q, VirtualKey.A,
+               VirtualKey.Z, VirtualKey.LeftWindows);
 
-        // Row 3
-        Many(12, VirtualKey.CapitalLock, VirtualKey.A, VirtualKey.S);
-        Many(13, VirtualKey.D, VirtualKey.F, VirtualKey.G);
-        Many(14, VirtualKey.H, VirtualKey.J, VirtualKey.K);
-        One(VirtualKey.L, 15);
-        m[(VirtualKey)0xBA] = new[] { 15 }; // ;
-        m[(VirtualKey)0xDE] = new[] { 15 }; // '
-        One(VirtualKey.Enter, 15);
+        // Col 2 — 2 / W / S / X / LAlt
+        Set(3, VirtualKey.F2, VirtualKey.Number2, VirtualKey.W, VirtualKey.S,
+               VirtualKey.X, VirtualKey.LeftMenu, VirtualKey.Menu);
 
-        // Row 4
-        Many(16, VirtualKey.Shift, VirtualKey.LeftShift, VirtualKey.Z, VirtualKey.X);
-        Many(17, VirtualKey.C, VirtualKey.V, VirtualKey.B);
-        One(VirtualKey.N, 18);
-        One(VirtualKey.M, 18);
-        m[(VirtualKey)0xBC] = new[] { 18 }; // ,
-        m[(VirtualKey)0xBE] = new[] { 19 }; // .
-        m[(VirtualKey)0xBF] = new[] { 19 }; // /
-        One(VirtualKey.RightShift, 19);
+        // Col 3 — 3 / E / D / C
+        Set(5, VirtualKey.F3, VirtualKey.Number3, VirtualKey.E, VirtualKey.D, VirtualKey.C);
 
-        // Row 5
-        Many(20, VirtualKey.Control, VirtualKey.LeftControl,
-                 VirtualKey.LeftWindows, VirtualKey.LeftMenu, VirtualKey.Menu);
-        // Space spans the two middle bottom zones.
-        m[VirtualKey.Space] = new[] { 21, 22 };
-        Many(23, VirtualKey.RightMenu, VirtualKey.RightWindows, VirtualKey.Application,
-                 VirtualKey.RightControl,
-                 VirtualKey.Left, VirtualKey.Right, VirtualKey.Up, VirtualKey.Down);
+        // Col 4 — 4 / R / F / V
+        Set(6, VirtualKey.F4, VirtualKey.Number4, VirtualKey.R, VirtualKey.F, VirtualKey.V);
+
+        // Col 5 — 5 / T / G / B
+        Set(8, VirtualKey.F5, VirtualKey.Number5, VirtualKey.T, VirtualKey.G, VirtualKey.B);
+
+        // Col 6 — 6 / Y / H / N
+        Set(10, VirtualKey.F6, VirtualKey.Number6, VirtualKey.Y, VirtualKey.H, VirtualKey.N);
+
+        // Col 7 — 7 / U / J / M (right of split, around Space center)
+        Set(11, VirtualKey.F7, VirtualKey.Number7, VirtualKey.U, VirtualKey.J, VirtualKey.M);
+
+        // Space spans the middle of the strip.
+        m[VirtualKey.Space] = new[] { 9, 10, 11, 12, 13, 14 };
+
+        // Col 8 — 8 / I / K / ,
+        Set(13, VirtualKey.F8, VirtualKey.Number8, VirtualKey.I, VirtualKey.K);
+        SetRaw(13, 0xBC); // ,
+
+        // Col 9 — 9 / O / L / .
+        Set(15, VirtualKey.F9, VirtualKey.Number9, VirtualKey.O, VirtualKey.L);
+        SetRaw(15, 0xBE); // .
+
+        // Col 10 — 0 / P / ; / /
+        Set(16, VirtualKey.F10, VirtualKey.Number0, VirtualKey.P);
+        SetRaw(16, 0xBA, 0xBF); // ;  /
+
+        // Col 11 — - / [ / ' / RShift
+        SetRaw(18, 0xBD, 0xDB, 0xDE); // -  [  '
+        Set(18, VirtualKey.F11, VirtualKey.RightShift);
+
+        // Col 12 — = / ] / Enter
+        SetRaw(19, 0xBB, 0xDD); // =  ]
+        Set(19, VirtualKey.F12, VirtualKey.Enter);
+
+        // Col 13 — Backspace / \ / RCtrl / RAlt / RWin / Apps
+        Set(21, VirtualKey.Back, VirtualKey.RightMenu, VirtualKey.RightControl,
+                VirtualKey.RightWindows, VirtualKey.Application);
+        SetRaw(21, 0xDC); // \
+
+        // Right edge — PrintScreen / Insert / Home / PgUp / arrows up/left.
+        Set(22, VirtualKey.Snapshot, VirtualKey.Insert, VirtualKey.Home,
+                VirtualKey.PageUp, VirtualKey.Up, VirtualKey.Left);
+
+        // Far right — Delete / End / PgDn / arrows down/right / extra.
+        Set(23, VirtualKey.Delete, VirtualKey.End, VirtualKey.PageDown,
+                VirtualKey.Down, VirtualKey.Right,
+                VirtualKey.Scroll, VirtualKey.Pause);
 
         return m;
     }

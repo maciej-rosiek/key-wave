@@ -3,6 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Border Background="#0A0A10" CornerRadius="6" Padding="10"
             BorderBrush="#2A2A35" BorderThickness="1">
-        <UniformGrid x:Name="ZoneGrid" Rows="6" Columns="4"/>
+        <UniformGrid x:Name="ZoneGrid" Rows="1" Columns="24"/>
     </Border>
 </UserControl>

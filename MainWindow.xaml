@@ -4,7 +4,7 @@
         xmlns:sim="clr-namespace:KeyWave.Lighting.Simulator"
         Title="KeyWave"
         Icon="pack://application:,,,/Assets/AppIcon.png"
-        Width="680" Height="640"
+        Width="780" Height="540"
         Background="#101014" Foreground="#E0E0E0"
         FontFamily="Segoe UI" FontSize="13"
         WindowStartupLocation="CenterScreen">
@@ -67,7 +67,7 @@
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Distance" Opacity="0.7" VerticalAlignment="Center"/>
                 <Slider x:Name="DistanceSlider" Grid.Row="1" Grid.Column="1" Margin="6,0,6,0"
-                        Minimum="1" Maximum="8" TickFrequency="1" IsSnapToTickEnabled="True"
+                        Minimum="1" Maximum="12" TickFrequency="1" IsSnapToTickEnabled="True"
                         VerticalAlignment="Center"/>
                 <TextBlock x:Name="DistanceValue" Grid.Row="1" Grid.Column="2" TextAlignment="Right"
                            VerticalAlignment="Center" Opacity="0.85"/>
@@ -94,13 +94,14 @@
         <Border DockPanel.Dock="Bottom" Padding="10" CornerRadius="4" Background="#1A1A22"
                 BorderBrush="#2A2A35" BorderThickness="1" Margin="0,12,0,0">
             <TextBlock TextWrapping="Wrap" Opacity="0.75" FontSize="11">
-                The on-screen 24-zone grid mirrors what would be sent to a real LampArray.
+                The on-screen 24-zone strip mirrors what would be sent to a real LampArray.
+                Index 0 is the left edge of the keyboard, index 23 is the right.
                 Keep this window focused — the LampArray API only applies colors when the app is in foreground,
                 unless installed as a packaged app via the MSIX in Releases.
                 Close to minimize to tray; right-click the tray icon to exit.
             </TextBlock>
         </Border>
 
-        <sim:SimulatorPanel x:Name="Simulator"/>
+        <sim:SimulatorPanel x:Name="Simulator" DockPanel.Dock="Bottom" Height="80"/>
     </DockPanel>
 </Window>

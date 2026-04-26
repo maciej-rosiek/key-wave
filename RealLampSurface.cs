@@ -18,11 +18,12 @@ public sealed class RealLampSurface : ILampSurface
     public string DisplayName => _lamp.DeviceId;
     public int LampCount => _lamp.LampCount;
 
-    // The LampArray API doesn't expose per-zone physical positions, so we
-    // approximate the grid: 24-zone keyboards are typically laid out roughly
-    // 6 rows × 4 columns; for other sizes, fall back to a single row.
-    public int Rows => _lamp.LampCount == 24 ? 6 : 1;
-    public int Cols => _lamp.LampCount == 24 ? 4 : _lamp.LampCount;
+    // Real LampArray keyboards expose zones as a single horizontal strip —
+    // index 0 is the left edge, index N-1 the right edge. The Ripple effect
+    // uses this to propagate left/right from whatever zone(s) the pressed
+    // key lights up.
+    public int Rows => 1;
+    public int Cols => _lamp.LampCount;
 
     public int[] GetIndicesForKey(VirtualKey key) => _lamp.GetIndicesForKey(key);
     public void SetColor(WinColor color) => _lamp.SetColor(color);
